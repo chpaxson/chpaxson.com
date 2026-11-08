@@ -19,6 +19,10 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      input: [
+        fileURLToPath(new URL('./index.html', import.meta.url)),
+        fileURLToPath(new URL('./serialconsole.html', import.meta.url)),
+      ],
       output: {
         entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name].js',

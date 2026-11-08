@@ -406,6 +406,7 @@
   <h1>Web Serial Console</h1>
   <div class="subtitle">Requires Chrome or Edge, served over HTTPS or localhost</div>
   <div class="top-actions">
+    <button id="refreshPortsBtn" title="Close all connected ports and re-open the same devices">⟳ Refresh Ports</button>
     <button id="darkModeToggle" class="icon-btn" title="Toggle dark mode">🌙</button>
     <button id="globalSettingsBtn" class="icon-btn" title="Settings">⚙️</button>
   </div>
@@ -515,6 +516,7 @@
     </div>
 
     <div class="log-row">
+      <button class="clear-btn" type="button" title="Clear all buffered data from this console">Clear</button>
       <button class="log-btn">Start Logging</button>
       <button type="button" class="toggle-btn log-meta-btn">Include metadata in log</button>
       <button type="button" class="toggle-btn log-prior-btn" title="When starting, also save messages already in the buffer (received before logging started)">Include buffered history</button>
@@ -619,6 +621,7 @@
       settings: loadColumnSettings(index),
       port: null,
       reader: null,
+      readDone: null,
       writer: null,
       connected: false,
       messages: [],
@@ -1043,6 +1046,16 @@
     state.columns.forEach(function(_, i){ renderConsole(i); });
   }
 
+  // Buffered bytes above which enabling Hex View asks for confirmation,
+  // since it creates a DOM node per character and per byte.
+  const HEX_WARN_BYTES = 20000;
+
+  function clearConsole(i){
+    const col = state.columns[i];
+    col.messages = [];
+    renderConsole(i);
+  }
+
   /* ---------------------------------------------------------------------
    * Hex-view selection sync - selecting a range of characters in a
    * text-cell highlights the overlapping byte(s) in that row's hex-cell,
@@ -1193,27 +1206,31 @@
   /* ---------------------------------------------------------------------
    * Serial connection
    * ------------------------------------------------------------------- */
-  async function connectColumn(i){
+  async function openPort(i, port){
     const col = state.columns[i];
+    const s = col.settings;
+    await port.open({
+      baudRate: Number(s.baud),
+      dataBits: Number(s.dataBits),
+      stopBits: Number(s.stopBits),
+      parity: s.parity,
+      flowControl: s.flowControl
+    });
+    col.port = port;
+    col.connected = true;
+    col.writer = port.writable.getWriter();
+    updateColumnUI(i);
+    col.readDone = readLoop(i);
+  }
+
+  async function connectColumn(i){
     if(!("serial" in navigator)){
       alert("The Web Serial API is not available in this browser. Please use Chrome or Edge over HTTPS (or localhost).");
       return;
     }
     try{
       const port = await navigator.serial.requestPort();
-      const s = col.settings;
-      await port.open({
-        baudRate: Number(s.baud),
-        dataBits: Number(s.dataBits),
-        stopBits: Number(s.stopBits),
-        parity: s.parity,
-        flowControl: s.flowControl
-      });
-      col.port = port;
-      col.connected = true;
-      col.writer = port.writable.getWriter();
-      updateColumnUI(i);
-      readLoop(i);
+      await openPort(i, port);
     } catch(err){
       if(err && err.name !== "NotFoundError"){
         alert("Failed to connect: " + err.message);
@@ -1225,12 +1242,39 @@
     const col = state.columns[i];
     col.connected = false;
     try{ if(col.reader){ await col.reader.cancel(); } } catch(e){}
+    // Wait for the read loop to release its lock, otherwise port.close() fails.
+    try{ if(col.readDone){ await col.readDone; } } catch(e){}
     try{ if(col.writer){ await col.writer.close(); } } catch(e){}
+    try{ if(col.writer){ col.writer.releaseLock(); } } catch(e){}
     try{ if(col.port){ await col.port.close(); } } catch(e){}
     col.port = null;
     col.reader = null;
     col.writer = null;
+    col.readDone = null;
     updateColumnUI(i);
+  }
+
+  // Closes every connected port and re-opens the same device (no picker
+  // prompt, since the SerialPort object is reused) with the current settings.
+  async function refreshPorts(){
+    const btn = document.getElementById("refreshPortsBtn");
+    btn.disabled = true;
+    const failures = [];
+    for(let i = 0; i < state.columns.length; i++){
+      const col = state.columns[i];
+      if(!col.connected || !col.port) continue;
+      const port = col.port;
+      await disconnectColumn(i);
+      try{
+        await openPort(i, port);
+      } catch(err){
+        failures.push(col.settings.label + ": " + err.message);
+      }
+    }
+    btn.disabled = false;
+    if(failures.length){
+      alert("Could not re-open:\n" + failures.join("\n"));
+    }
   }
 
   async function readLoop(i){
@@ -1461,10 +1505,23 @@
     });
 
     root.querySelector(".hexview-btn").addEventListener("click", function(){
+      if(!col.settings.hexView){
+        const bufferedBytes = col.messages.reduce(function(sum, msg){
+          return sum + (msg.bytes ? msg.bytes.length : msg.text.length);
+        }, 0);
+        if(bufferedBytes > HEX_WARN_BYTES &&
+           !confirm("The buffer holds about " + bufferedBytes.toLocaleString() + " bytes. Turning on Hex View re-renders all of it and may take a few seconds.\n\nTurn on Hex View anyway? (Clear the console first to make it instant.)")){
+          return;
+        }
+      }
       col.settings.hexView = !col.settings.hexView;
       persist();
       updateToolbarButtons(i);
       renderConsole(i);
+    });
+
+    root.querySelector(".clear-btn").addEventListener("click", function(){
+      clearConsole(i);
     });
 
     bindHexResizer(i);
@@ -1570,6 +1627,8 @@
   document.getElementById("g-num-columns").addEventListener("change", function(e){
     setNumColumns(Number(e.target.value));
   });
+
+  document.getElementById("refreshPortsBtn").addEventListener("click", refreshPorts);
 
   document.getElementById("darkModeToggle").addEventListener("click", function(){
     global.darkMode = !global.darkMode;
