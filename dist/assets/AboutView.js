@@ -1,1 +1,1 @@
-import{f as e,l as t,n,y as r}from"./index.js";var i={},a={class:`about`};function o(n,i){return r(),e(`div`,a,[...i[0]||=[t(`h1`,null,`This is an about page`,-1)]])}var s=n(i,[[`render`,o]]);export{s as default};
+import{_ as e,i as t,s as n}from"./runtime-core.esm-bundler.js";import{t as r}from"./index.js";var i={},a={class:`about`};function o(r,i){return e(),n(`div`,a,[...i[0]||=[t(`h1`,null,`This is an about page`,-1)]])}var s=r(i,[[`render`,o]]);export{s as default};

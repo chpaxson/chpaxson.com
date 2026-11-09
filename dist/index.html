@@ -24,6 +24,9 @@
       if (window.location.pathname.replace(/\/+$/, '') === '/serialconsole') {
         window.location.replace('/serialconsole.html' + window.location.search + window.location.hash)
       }
+      if (window.location.pathname.replace(/\/+$/, '') === '/bradym211') {
+        window.location.replace('/bradym211.html' + window.location.search + window.location.hash)
+      }
     </script>
     <script>
       MathJax = {
@@ -40,6 +43,10 @@
       src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
     <script type="module" crossorigin src="/assets/index.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill.js">
+    <link rel="modulepreload" crossorigin href="/assets/preload-helper.js">
+    <link rel="modulepreload" crossorigin href="/assets/runtime-core.esm-bundler.js">
+    <link rel="modulepreload" crossorigin href="/assets/runtime-dom.esm-bundler.js">
     <link rel="stylesheet" crossorigin href="/assets/index.css">
   </head>
   <body>
