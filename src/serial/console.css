@@ -1,0 +1,80 @@
+.serial-console {
+  --console-bg: #252e39;
+  --console-text: #ecf2fa;
+  --console-in: #80dbc5;
+  --console-out: #f2c572;
+  --meta-color: #a2b1c2;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .topbar { flex-shrink: 0; }
+  .serial-workspace { display: flex; flex-direction: column; flex: 1; min-height: 0; width: 100%; margin: 0 auto; }
+  .intro { flex-shrink: 0; }
+  #columnsContainer {
+    display: grid;
+    grid-auto-rows: 1fr;
+    align-items: stretch;
+    gap: 20px;
+    overflow: auto hidden;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 4px;
+  }
+  .column { display: flex; flex-direction: column; min-width: 320px; min-height: 0; overflow-y: auto; }
+  .section-heading { flex-shrink: 0; }
+  .col-header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-bottom: 12px; }
+  .col-label { flex: 1 1 100px; width: 100px; font-weight: 600; }
+  .conn-info { font-size: .75rem; color: var(--muted); flex: 1 1 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  button.danger { border-color: #df6262; }
+  .port-settings-btn, .options-btn { white-space: nowrap; }
+  .port-settings-btn::after, .options-btn::after { content: " +"; }
+  .port-settings-btn.open::after, .options-btn.open::after { content: " -"; }
+  .conn-settings-panel, .options-panel { padding: 12px 0; border-top: 1px solid var(--border); }
+  .conn-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
+  .send-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0; border-top: 1px solid var(--border); }
+  .send-row input { flex: 1 1 140px; width: 140px; }
+  .options-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .console-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-bottom: 12px; }
+  .autoscroll-btn { margin-left: auto; }
+  .options-btn { font-size: .8rem; }
+  .col-header, .conn-settings-panel, .send-row, .console-toolbar, .options-panel, .log-row { flex-shrink: 0; }
+  .console-wrapper { position: relative; flex: 1 0 160px; min-height: 160px; display: flex; }
+  .hex-resizer { position: absolute; top: 0; bottom: 0; width: 10px; cursor: col-resize; z-index: 2; touch-action: none; }
+  .hex-resizer::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: transparent; transform: translateX(-50%); }
+  .hex-resizer:hover::after, .hex-resizer:focus-visible::after, .hex-resizer.dragging::after { background: var(--accent); width: 2px; }
+  .console {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    background: var(--console-bg);
+    color: var(--console-text);
+    border-radius: 10px;
+    font: .8rem / 1.6 Consolas, "SFMono-Regular", Menlo, monospace;
+    padding: 8px 10px;
+    overflow-y: auto;
+    display: grid;
+    column-gap: 10px;
+    align-content: start;
+    scrollbar-color: #576779 var(--console-bg);
+  }
+  .line-wrap { display: contents; }
+  .meta-cell { font: italic .75rem / 1.6 Georgia, "Times New Roman", serif; color: var(--meta-color); white-space: pre; text-align: right; padding: 1px 8px 1px 0; border-right: 1px solid #576779; }
+  .text-cell { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; padding: 1px 0; }
+  .line-out .text-cell { color: var(--console-out); }
+  .line-in .text-cell { color: var(--console-in); }
+  .hex-cell { white-space: normal; min-width: 0; color: var(--meta-color); border-left: 1px solid #576779; padding: 1px 0 1px 8px; }
+  .char-cell, .hex-byte { border-radius: 2px; }
+  .console .sync-hl { background-color: var(--accent) !important; color: var(--bg) !important; }
+  .log-row { display: flex; align-items: center; gap: 8px; padding-top: 12px; flex-wrap: wrap; }
+  .console-settings { width: min(360px, calc(100vw - 32px)); }
+  .console-settings .field { margin-bottom: 16px; }
+  .console-settings .actions { justify-content: flex-end; }
+  .notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; white-space: pre-wrap; max-height: 25vh; overflow: auto; flex-shrink: 0; }
+  @media (max-width: 600px) {
+    .intro { font-size: .85rem; margin-bottom: 16px; }
+  }
+}

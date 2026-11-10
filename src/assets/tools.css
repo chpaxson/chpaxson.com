@@ -1,0 +1,75 @@
+.tool-page {
+  --bg: #eff2f6;
+  --panel: #fff;
+  --text: #17212f;
+  --muted: #576779;
+  --border: #cbd5e1;
+  --accent: #036b60;
+  --tint: #e5f5f0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  color-scheme: light;
+  font: 16px / normal Inter, "Segoe UI", sans-serif;
+  font-synthesis: none;
+
+  &.dark {
+    --bg: #10151c;
+    --panel: #19212b;
+    --text: #ecf2fa;
+    --muted: #a2b1c2;
+    --border: #354151;
+    --accent: #5ee0c3;
+    --tint: #193b36;
+    color-scheme: dark;
+  }
+  :where(*) { font-weight: revert; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--border); background: var(--panel); padding: 24px max(24px, calc((100vw - 1520px) / 2)); }
+  .topbar-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .topbar-controls label { display: flex; align-items: center; gap: 8px; }
+  button.icon-btn { font-size: 20px; padding: 8px 10px; line-height: 1; }
+  button.toggle-btn { font-size: .8rem; padding: 6px 12px; border-radius: 20px; justify-self: start; align-self: center; }
+  button.toggle-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  h1 { font-size: clamp(1.4rem, 4vw, 2rem); margin: 6px 0 0; letter-spacing: -.04em; font-weight: 700; }
+  h2 { font-size: 1rem; margin: 0 0 16px; font-weight: 700; }
+  .eyebrow { color: var(--accent); font-size: .68rem; font-weight: 700; letter-spacing: .16em; }
+  .tool-content { max-width: 1520px; padding: 24px; margin: auto; }
+  .intro { color: var(--muted); margin: 0 0 24px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); padding: 22px; border-radius: 14px; }
+  .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .section-heading h2 { margin: 0; }
+  .badge { color: var(--muted); border: 1px solid var(--border); padding: 4px 8px; border-radius: 30px; font-size: .7rem; white-space: nowrap; }
+  .badge.online { color: var(--accent); background: var(--tint); }
+  button, input, select { font: inherit; }
+  button { border: 1px solid var(--border); background: var(--panel); color: var(--text); padding: 9px 12px; border-radius: 8px; font-size: .85rem; line-height: 1.4; cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .hint { color: var(--muted); font-size: .8rem; line-height: 1.5; margin: 8px 0; }
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 12px; }
+  label { display: grid; gap: 6px; font-size: .85rem; line-height: 1.4; }
+  input[type=number], input[type=text], select { width: 100%; min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--bg); color: var(--text); }
+  input { accent-color: var(--accent); }
+  .integer-input { display: flex; align-items: stretch; min-width: 0; width: 100%; }
+  .integer-input > button { flex: 0 0 32px; padding: 8px 0; font-size: 1rem; }
+  .integer-input > button:first-child { border-radius: 8px 0 0 8px; }
+  .integer-input > button:last-child { border-radius: 0 8px 8px 0; }
+  .integer-input > input { flex: 1 1 0; width: 0; min-width: 0; border-radius: 0; border-left: 0; border-right: 0; text-align: center; padding: 10px 4px; appearance: textfield; -moz-appearance: textfield; }
+  .integer-input > input::-webkit-inner-spin-button,
+  .integer-input > input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+  .banner { border: 1px solid var(--border); background: var(--tint); border-radius: 10px; padding: 13px 16px; font-size: .9rem; line-height: 1.5; margin-bottom: 12px; overflow-wrap: anywhere; }
+  .warning { background: var(--panel); border-color: #b88723; }
+  .error { background: var(--panel); border-color: #df6262; }
+  .studio-dialog { width: min(680px, calc(100vw - 32px)); max-height: 85dvh; overflow: auto; border: 1px solid var(--border); border-radius: 12px; padding: 20px; background: var(--panel); color: var(--text); margin: auto; }
+  .studio-dialog::backdrop { background: #000a; }
+  .studio-dialog p { line-height: 1.5; }
+  a { color: var(--accent); padding: 0; text-decoration: underline; transition: none; }
+  a:hover { background: transparent; }
+  @media (max-width: 600px) {
+    .tool-content { padding: 16px; }
+    .topbar { padding: 20px 16px; flex-wrap: wrap; }
+    .panel { padding: 18px; }
+  }
+}

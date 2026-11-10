@@ -7,6 +7,7 @@ import { RouterLink } from 'vue-router'
     <div class="nav-container">
       <RouterLink to="/" class="nav-link">Home</RouterLink>
       <RouterLink to="/projects" class="nav-link">Projects</RouterLink>
+      <RouterLink to="/tools" class="nav-link">Tools</RouterLink>
       <RouterLink to="/resume" class="nav-link">Resume</RouterLink>
     </div>
   </nav>
@@ -56,6 +57,12 @@ import { RouterLink } from 'vue-router'
 @media (prefers-color-scheme: dark) {
   .nav-link:hover {
     background: rgba(255, 255, 255, 0.1);
+  }
+
+  @media (max-width: 480px) {
+    .nav-link {
+      padding: 0.5rem 0.75rem;
+    }
   }
 }
 </style>

@@ -32,11 +32,61 @@ This runs the TypeScript/Vue type check and builds the site into `dist/`. To ser
 npm run preview
 ```
 
-The standalone serial console is included in the build as `dist/serialconsole.html`. On the deployed site, it is available at `/serialconsole` (which redirects to that HTML page) and `/serialconsole.html`.
+The website and both tools are served by the same Vue Router application.
+
+## Tools
+
+The main navigation's **Tools** page (`/tools`) links to **Brady M211 Label Studio**
+and **Serial Console** at `/bradym211` and `/serialconsole`. Both are lazy-loaded
+Vue Router pages with the main navigation visible. The old `/bradym211.html`
+and `/serialconsole.html` URLs remain supported as router aliases. Direct links
+on GitHub Pages use the existing `404.html` SPA fallback.
+
+### Serial Console
+
+The Serial Console route loads the Vue 3 / TypeScript components in `src/serial/`.
+Open it in desktop Chrome or Edge over HTTPS or localhost. Each of up to eight
+columns connects to a separate device with its own baud rate, data/stop bits,
+parity, and flow control. **Refresh Ports** reopens the connected devices without
+another device picker.
+
+Send text with optional CR/LF endings, `\xHH` byte escapes, or backtick-delimited
+key escapes such as `` `CTRL+C` `` and `` `ESC` ``. **Send Char** sends only the
+first Unicode character without escapes or appended line endings. Failed writes
+retain the input for retry.
+
+Display options include ANSI colors/styles, timestamps, message numbers,
+outgoing data visibility, auto-scroll, and a resizable text/hex view with linked
+selection highlighting. The per-column buffer holds 10–20,000 messages.
+**Start Logging** records messages in memory; **Stop Logging (Save File)**
+downloads the log. Logging can include metadata and existing buffered history.
+Removing a logging column prompts before saving its log; leaving while logging
+requests browser confirmation. Incoming data and log contents are not uploaded.
+
+Layout, theme, and per-column preferences use the existing `wsc_global` /
+`wsc_col_*` cookies, so saved settings from the previous console carry over.
+Messages and active connections are not persisted. Connection, read/write, and
+preference errors appear in the console interface.
+
+Both tools share Label Studio's scoped theme, typography, header, panel, input,
+button, and dialog styles in `src/assets/tools.css`. Tool-specific styles do not
+affect the rest of the website. Leaving a tool disconnects its devices; leaving
+Serial Console while logging prompts to save active logs first.
+
+Integer fields (columns, buffer size, baud rate, copies, and PPI) have minus/plus
+buttons alongside the editable spin box. Buttons respect each field's limits and
+step size; direct typing and keyboard arrow controls remain available. Distance
+fields retain decimal/unit entry, and the threshold control remains a slider.
+
+Run console regression tests (no hardware required) on Node.js 22.14 or later:
+
+```sh
+npm run test:serial
+```
 
 ## M211 Label Studio
 
-Open `/bradym211.html` (or `/bradym211` on the deployed site) for the standalone Brady
+Open `/bradym211` (or the legacy `/bradym211.html` alias) for the Brady
 M211 interface. Use Chrome or Edge with Web Bluetooth enabled, over HTTPS or
 localhost. Turn on the printer, close other connected apps, and select **Connect
 M211**. The SDK retains Bluetooth ownership in local storage for reconnecting.

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { onBeforeRouteLeave, RouterLink } from 'vue-router'
 import { loadPrinter, type PrinterClient, type CutOption, type PrintSettings } from './printer'
 import { combineImages, imageRenderer, renderLabelImage, type LabelRenderer, type RenderOptions } from './renderers'
 import type { StripOptions } from './strip'
@@ -14,6 +15,7 @@ import { describePixels, describeSize, fromPixels, toPixels, previewWidth, type 
 import type { ImageSizing } from './image-layout'
 import { saveTypstSource } from './source-save'
 import SupportingFilesDialog from './SupportingFilesDialog.vue'
+import IntegerInput from '../components/IntegerInput.vue'
 
 interface Label {
   id: number
@@ -133,6 +135,7 @@ const pendingPrint = shallowRef<PendingPrint>()
 const heightDialog = ref<HTMLDialogElement>()
 let nextId = 0
 let poll: ReturnType<typeof setInterval> | undefined
+let disposed = false
 
 function record(message: string, isError = false) {
   if (isError && toasts.value.some(toast => toast.error && toast.message === message)) return
@@ -178,7 +181,12 @@ async function action(name: string, operation: () => Promise<void>, success: str
 async function initializeSdk() {
   sdkLoading.value = true
   try {
-    client.value = await loadPrinter(refresh)
+    const loaded = await loadPrinter(refresh)
+    if (disposed) {
+      if (loaded.connected) await loaded.disconnect()
+      return
+    }
+    client.value = loaded
     refresh()
   } catch (cause) {
     report(cause)
@@ -224,6 +232,7 @@ function resetTypst() {
   typstFilename.value = 'labels.typ'
 }
 onUnmounted(() => {
+  disposed = true
   if (poll) clearInterval(poll)
   liveController?.abort()
   typstSession.dispose()
@@ -232,6 +241,21 @@ onUnmounted(() => {
   stripRevision++
   for (const timer of toastTimers) clearTimeout(timer)
   window.removeEventListener('keydown', saveShortcut)
+  if (client.value?.connected) {
+    void client.value.disconnect().catch(cause => console.error('Could not disconnect M211 on exit:', cause))
+  }
+})
+onBeforeRouteLeave(async () => {
+  if (busy.value) {
+    report(new Error('Wait for the current printer operation to finish before leaving Label Studio.'))
+    return false
+  }
+  if ((labels.value.length || typstFiles.value.length || typstDirty.value) &&
+      !confirm('Leave Label Studio? Unsaved artwork and supporting files will be removed. The local Typst draft is retained.')) return false
+  if (client.value?.connected) {
+    try { await client.value.disconnect() }
+    catch (cause) { report(cause); return false }
+  }
 })
 watch(() => info.value?.error, message => { if (message) record(message, true) })
 
@@ -541,10 +565,11 @@ function cutNow() {
 </script>
 
 <template>
-  <div class="studio" :class="{ dark }">
+  <div class="tool-page studio" :class="{ dark }">
     <header class="topbar">
       <div><span class="eyebrow">BRADY / WEB BLUETOOTH</span><h1>M211 Label Studio</h1></div>
       <div class="topbar-controls">
+        <RouterLink to="/tools">All tools</RouterLink>
         <label>Units<select v-model="distanceUnit" aria-label="Measurement units">
           <option value="mm">mm</option><option value="in">inch</option><option value="px">pixel</option>
         </select></label>
@@ -553,7 +578,7 @@ function cutNow() {
           :aria-label="dark ? 'Switch to light mode' : 'Switch to dark mode'">{{ dark ? '☀️' : '🌙' }}</button>
       </div>
     </header>
-    <main>
+    <div class="tool-content">
       <p class="intro">From image to label. Prepare locally, preview, then print over Bluetooth.</p>
       <div v-if="!bluetoothSupported" class="banner warning">
         Printing requires Web Bluetooth over HTTPS or localhost. Use a supported browser such as
@@ -598,7 +623,7 @@ function cutNow() {
           <section class="panel">
             <h2>02 / Print settings</h2>
             <fieldset class="print-settings" :disabled="!!busy">
-              <label :title="combining ? 'Copies of the combined strip' : 'Copies of each image'">Copies<input v-model.number="copies" type="number" min="1" max="100" step="1"></label>
+              <label :title="combining ? 'Copies of the combined strip' : 'Copies of each image'">Copies<IntegerInput v-model="copies" label="Copies" :min="1" :max="100" /></label>
               <label>Cut behavior
                 <select v-model="cut">
                   <option :value="0">At end of job</option>
@@ -654,12 +679,13 @@ function cutNow() {
             <fieldset v-if="workflow === 'upload' || connected" class="resolution-settings" :disabled="!!busy">
               <template v-if="workflow === 'upload'">
                 <label class="inline-field" title="Leave blank to follow the printer PPI, or enter an override for PDF import. Offline default: 203.">Raster PPI
-                  <input :value="pdfPpiOverride ?? ''" :placeholder="String(detectedPpi ?? 203)" type="number" min="72" max="1200" step="1" @input="updatePdfPpi">
+                  <IntegerInput :model-value="pdfPpiOverride ?? NaN" label="Raster PPI"
+                    :placeholder="String(detectedPpi ?? 203)" :min="72" :max="1200" @input="updatePdfPpi" />
                 </label>
                 <button v-if="pdfPpiOverride !== undefined" @click="pdfPpiOverride = undefined">Reset to printer PPI</button>
               </template>
               <span v-else-if="detectedPpi" class="badge online" title="Raster resolution follows the connected printer automatically.">Printer: {{ rasterPpi }} PPI</span>
-              <label v-else class="inline-field">Raster PPI<input v-model.number="manualPpi" type="number" min="72" max="1200" step="1"></label>
+              <label v-else class="inline-field">Raster PPI<IntegerInput v-model="manualPpi" label="Raster PPI" :min="72" :max="1200" /></label>
               <span v-if="connected && !detectedPpi" class="ppi-warning" role="status">{{ workflow === 'typst' ? `Printer PPI unavailable. Using manual ${rasterPpi} PPI until a resolution is reported.` : 'Printer PPI unavailable. Default: 203 PPI; enter an override if needed.' }}</span>
             </fieldset>
             <div v-show="workflow === 'typst'" id="typst-panel" role="tabpanel" aria-labelledby="typst-tab" tabindex="0" class="typst-editor">
@@ -771,8 +797,8 @@ function cutNow() {
                     </select>
                   </label>
                   <label v-if="label.sizing === 'crop'">Image PPI (default: printer)
-                    <input :value="label.ppi ?? outputPpi" type="number" min="72" max="1200" step="1"
-                      :aria-label="`Image PPI for ${label.name}`" @input="updateLabel(label.id, { ppi: ($event.target as HTMLInputElement).valueAsNumber })">
+                    <IntegerInput :model-value="label.ppi ?? outputPpi" :min="72" :max="1200"
+                      :label="`Image PPI for ${label.name}`" @input="updateLabel(label.id, { ppi: ($event.target as HTMLInputElement).valueAsNumber })" />
                     <button v-if="label.ppi !== undefined" @click="updateLabel(label.id, { ppi: undefined })">Use printer PPI</button>
                   </label>
                 </fieldset>
@@ -824,6 +850,8 @@ function cutNow() {
         / <a :href="`${baseUrl}brady-sdk/typst-LICENSE`">Typst.ts license</a>
         / <a :href="`${baseUrl}brady-sdk/pdfjs-LICENSE`">PDF.js license</a>
       </footer>
-    </main>
+    </div>
   </div>
 </template>
+
+<style src="./studio.css"></style>

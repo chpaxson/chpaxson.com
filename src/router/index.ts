@@ -20,6 +20,26 @@ const router = createRouter({
       component: () => import("../views/ProjectDetailView.vue"),
     },
     {
+      path: "/tools",
+      name: "tools",
+      component: () => import("../views/ToolsView.vue"),
+      meta: { title: "Tools | Charles Paxson" },
+    },
+    {
+      path: "/bradym211",
+      alias: "/bradym211.html",
+      name: "label-studio",
+      component: () => import("../brady/LabelStudio.vue"),
+      meta: { title: "M211 Label Studio" },
+    },
+    {
+      path: "/serialconsole",
+      alias: "/serialconsole.html",
+      name: "serial-console",
+      component: () => import("../serial/SerialConsole.vue"),
+      meta: { fullHeight: true, title: "Web Serial Console" },
+    },
+    {
       path: "/resume",
       name: "resume",
       component: () => import("../views/ResumeView.vue"),

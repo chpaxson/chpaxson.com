@@ -24,8 +24,6 @@ export default defineConfig({
     rollupOptions: {
       input: [
         fileURLToPath(new URL('./index.html', import.meta.url)),
-        fileURLToPath(new URL('./serialconsole.html', import.meta.url)),
-        fileURLToPath(new URL('./bradym211.html', import.meta.url)),
       ],
       output: {
         entryFileNames: 'assets/[name].js',

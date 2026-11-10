@@ -1,0 +1,217 @@
+{
+  "planHash": "bcca8ec3ceda872d3596bb03db4cd54e75a2cb2d252c3f65b9fc63afc1cf0371",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-11-10T10:05:31.2559233Z",
+  "retryCount": 1,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 0,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "vue-type-check",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "",
+        "durationMs": 2052
+      },
+      {
+        "name": "production-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\u001B[36mrolldown-vite v7.1.16 \u001B[32mbuilding for production...\u001B[36m\u001B[39m\r\n\u001B[2K\r\ntransforming...\u001B[32m\u2713\u001B[39m 147 modules transformed.\r\nrendering chunks...\r\ncomputing gzip size...\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/CNS2-V.bcmap                   \u001B[39m\u001B[1m\u001B[2m     0.09 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/Roman.bcmap                    \u001B[39m\u001B[1m\u001B[2m     0.09 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/Katakana.bcmap                 \u001B[39m\u001B[1m\u001B[2m     0.10 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/ETenms-B5-H.bcmap              \u001B[39m\u001B[1m\u001B[2m     0.10 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/UniJIS-UCS2-HW-H.bcmap         \u001B[39m\u001B[1m\u001B[2m     0.11 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/Hiragana.bcmap                 \u001B[39m\u001B[1m\u001B[2m     0.12 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/Hankaku.bcmap                  \u001B[39m\u001B[1m\u001B[2m     0.13 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/B5-V.bcmap                     \u001B[39m\u001B[1m\u001B[2m     0.14 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/CNS1-V.bcmap                   \u001B[39m\u001B[1m\u001B[2m     0.14 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/B5pc-V.bcmap                   \u001B[39m\u001B[1m\u001B[2m     0.14 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/HKdla-B5-V.bcmap               \u001B[39m\u001B[1m\u001B[2m     0.14 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/HKdlb-B5-V.bcmap               \u001B[39m\u001B[1m\u001B[2m     0.14 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/HKm471-B5-V.bcmap              \u001B[39m\u001B[1m\u001B[2m     0.14 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/HKm314-B5-V.bcmap              \u001B[39m\u001B[1m\u001B[2m     0.14 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/HKgccs-B5-V.bcmap              \u001B[39m\u001B[1m\u001B[2m     0.14 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/UniCNS-UTF16-V.bcmap           \u001B[39m\u001B[1m\u001B[2m     0.15 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/UniCNS-UCS2-V.bcmap            \u001B[39m\u001B[1m\u001B[2m     0.15 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/UniCNS-UTF8-V.bcmap            \u001B[39m\u001B[1m\u001B[2m     0.15 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/ETHK-B5-V.bcmap                \u001B[39m\u001B[1m\u001B[2m     0.15 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/ETen-B5-V.bcmap                \u001B[39m\u001B[1m\u001B[2m     0.15 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/HKscs-B5-V.bcmap               \u001B[39m\u001B[1m\u001B[2m     0.15 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/UniCNS-UTF32-V.bcmap           \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/KSC-V.bcmap                    \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/UniKS-UTF16-V.bcmap            \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/KSC-EUC-V.bcmap                \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/V.bcmap                        \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/KSC-Johab-V.bcmap              \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/KSCpc-EUC-V.bcmap              \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/KSCms-UHC-V.bcmap              \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/UniKS-UTF32-V.bcmap            \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/KSCms-UHC-HW-V.bcmap           \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/78-V.bcmap                     \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/UniKS-UTF8-V.bcmap             \u001B[39m\u001B[1m\u001B[2m     0.16 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/RKSJ-V.bcmap                   \u001B[39m\u001B[1m\u001B[2m     0.17 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/EUC-V.bcmap                    \u001B[39m\u001B[1m\u001B[2m     0.17 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/ETenms-B5-V.bcmap              \u001B[39m\u001B[1m\u001B[2m     0.17 kB\u001B[22m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mbrady-sdk/pdf-cmaps/78-RKSJ-V.bcmap                \n\u2026[truncated]",
+        "durationMs": 1868
+      },
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "TAP version 13\r\n# (node:55888) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time\r\n# (Use \u0060node.EXE --trace-warnings ...\u0060 to show where the warning was created)\r\n# Subtest: persistent cache hits avoid downloads across independent calls; failed responses are not saved\r\nok 1 - persistent cache hits avoid downloads across independent calls; failed responses are not saved\r\n  ---\r\n  duration_ms: 19.1599\r\n  ...\r\n# Subtest: unavailable persistent storage is an explicit error, not an uncached fallback\r\nok 2 - unavailable persistent storage is an explicit error, not an uncached fallback\r\n  ---\r\n  duration_ms: 0.2138\r\n  ...\r\n# (node:50004) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time\r\n# (Use \u0060node.EXE --trace-warnings ...\u0060 to show where the warning was created)\r\n# Subtest: detects valid SDK resolution and rejects missing, pending, or invalid reports\r\nok 3 - detects valid SDK resolution and rejects missing, pending, or invalid reports\r\n  ---\r\n  duration_ms: 0.9142\r\n  ...\r\n# Subtest: PDF/Typst page points rasterize to the requested PPI, including fractional sizes\r\nok 4 - PDF/Typst page points rasterize to the requested PPI, including fractional sizes\r\n  ---\r\n  duration_ms: 0.7233\r\n  ...\r\n# Subtest: invalid PPI and oversized pages fail before allocating a raster\r\nok 5 - invalid PPI and oversized pages fail before allocating a raster\r\n  ---\r\n  duration_ms: 0.6635\r\n  ...\r\n# (node:55464) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\r\n# (Use \u0060node.EXE --trace-warnings ...\u0060 to show where the warning was created)\r\n# Subtest: plain Enter and indent Tab precede autocomplete acceptance in the actual editor setup\r\nok 6 - plain Enter and indent Tab precede autocomplete acceptance in the actual editor setup\r\n  ---\r\n  duration_ms: 72.4984\r\n  ...\r\n# (node:45292) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time\r\n# (Use \u0060node.EXE --trace-warnings ...\u0060 to show where the warning was created)\r\n# Subtest: fit scales proportionally to full label height\r\nok 7 - fit scales proportionally to full label height\r\n  ---\r\n  duration_ms: 0.9051\r\n  ...\r\n# Subtest: fixed PPI crops tall images centrally, and pads short images without stretching\r\nok 8 - fixed PPI crops tall images centrally, and pads short images without stretching\r\n  ---\r\n  duration_ms: 0.2927\r\n  ...\r\n# Subtest: distance entry accepts optional suffixes without browser numeric-step errors\r\nok 9 - distance entry accepts optional suffixes without browser numeric-step errors\r\n  ---\r\n  duration_ms: 0.2757\r\n  ...\r\n# Subtest: print-height release scales proportionally or center crops without changing the source width\r\nok 10 - print-height release scales proportionally or center crops without changing the source width\r\n  ---\r\n  duration_ms: 0.1202\r\n  ...\r\n# (node:64016) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time\r\n# (Use \u0060node.EXE --trace-warnings ...\u0060 to show where the warning was created)\r\n# Subtest: mm, inches, and pixels use the active printer PPI\r\nok 11 - mm, inches, and pixels use the active printer PPI\r\n  ---\r\n  duration_ms: 0.6742\r\n  ...\r\n# Subtest: previews use the same physical display scale rather than stretching each page to its container\r\nok 12 - previews use the same physical display scale rather than stretching each page to its container\r\n  ---\r\n  duration_ms: 0.2212\r\n  ...\r\n# Subtest: preview sizes show the selected unit and raster dimensions at the actual render PPI\r\nok 13 - preview sizes show the selected unit and raster dimensions at the actual render PPI\r\n  ---\r\n  duration_ms: 0.2232\r\n  ...\r\n# Subtest: unit round trips preserve raster dimensions and physical distances round to pixels\r\nok 14 - unit round trips preserve raster dimensions and physical distances round to pixels\r\n  ---\r\n  duration_ms: 0.2609\r\n  ...\r\n# (node:37240) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time\r\n# (Use \u0060node.EXE --trace-warnings ...\u0060 to show where t\n\u2026[truncated]",
+        "durationMs": 1774,
+        "testResults": {
+          "testFramework": "unknown",
+          "runnerDetectedFrom": "none",
+          "testsTotal": 0,
+          "testsPassed": 0,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": true
+        }
+      },
+      {
+        "name": "tools-and-serial-console",
+        "kind": "playwright-route",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\nRunning 1 test using 1 worker\r\n\r\n[1/1] playwright-scripts\\tools-and-serial-console.spec.ts:5:1 \u203A tools-and-serial-console\r\n  1 passed (2.7s)\r\n",
+        "durationMs": 3142
+      },
+      {
+        "name": "routed-tools-and-preferences",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!DOCTYPE html\u003E\n\u003Chtml lang=\u0022\u0022\u003E\n  \u003Chead\u003E\n    \u003Cscript type=\u0022module\u0022 src=\u0022/@id/virtual:vue-devtools-path:overlay.js\u0022\u003E\u003C/script\u003E\n    \u003Cscript type=\u0022module\u0022 src=\u0022/@id/virtual:vue-inspector-path:load.js\u0022\u003E\u003C/script\u003E\n\n    \u003Cscript type=\u0022module\u0022 src=\u0022/@vite/client\u0022\u003E\u003C/script\u003E\n\n    \u003Cmeta charset=\u0022UTF-8\u0022\u003E\n    \u003Clink rel=\u0022icon\u0022 href=\u0022/favicon.ico\u0022\u003E\n    \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1.0\u0022\u003E\n    \u003Ctitle\u003ECharles Paxson - Mechanical Engineer\u003C/title\u003E\n    \u003Cscript\u003E\n      // Single Page Apps for GitHub Pages\n      // https://github.com/rafgraph/spa-github-pages\n      // Decode the redirect from 404.html\n      (function(l) {\n        if (l.search[1] === \u0027/\u0027 ) {\n          var decoded = l.search.slice(1).split(\u0027\u0026\u0027).map(function(s) { \n            return s.replace(/~and~/g, \u0027\u0026\u0027)\n          }).join(\u0027?\u0027);\n          window.history.replaceState(null, null,\n              l.pathname.slice(0, -1) \u002B decoded \u002B l.hash\n          );\n        }\n      }(window.location))\n    \u003C/script\u003E\n    \u003Cscript\u003E\n      MathJax = {\n        tex: {\n          inlineMath: [[\u0027$\u0027, \u0027$\u0027]],\n          displayMath: [[\u0027$$\u0027, \u0027$$\u0027]],\n          processEscapes: true,\n        },\n        svg: { fontCache: \u0027global\u0027 },\n        startup: { typeset: false },\n      };\n    \u003C/script\u003E\n    \u003Cscript type=\u0022text/javascript\u0022 id=\u0022MathJax-script\u0022 async\n      src=\u0022https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js\u0022\u003E\n    \u003C/script\u003E\n  \u003C/head\u003E\n  \u003Cbody\u003E\n    \u003Cdiv id=\u0022app\u0022\u003E\u003C/div\u003E\n    \u003Cscript type=\u0022module\u0022 src=\u0022/src/main.ts\u0022\u003E\u003C/script\u003E\n  \u003C/body\u003E\n\u003C/html\u003E\n\n--- server output ---\n\r\n  \u001B[32m\u001B[1mROLLDOWN-VITE\u001B[22m v7.1.16\u001B[39m  \u001B[2mready in \u001B[0m\u001B[1m784\u001B[22m\u001B[2m\u001B[0m ms\u001B[22m\r\n\r\n  \u001B[32m\u279C\u001B[39m  \u001B[1mLocal\u001B[22m:   \u001B[36mhttp://127.0.0.1:\u001B[1m5176\u001B[22m/\u001B[39m\r\n  \u279C  Vue DevTools: Open http://127.0.0.1:5176/__devtools__/ as a separate window\r\n  \u279C  Vue DevTools: Press Alt(\u2325)\u002BShift(\u21E7)\u002BD in App to toggle the Vue DevTools\r\n",
+        "durationMs": 1054
+      }
+    ],
+    "executions": [
+      {
+        "source": "devServer",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\node.EXE",
+        "args": [
+          "node_modules\\vite\\bin\\vite.js",
+          "--host",
+          "127.0.0.1",
+          "--port",
+          "5175",
+          "--strictPort"
+        ],
+        "cwd": "D:\\Documents\\Projects\\chpaxson.github.io",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32",
+        "nodeExecutable": null,
+        "nodeVersion": null,
+        "packageManager": null,
+        "packageManagerExecutable": null,
+        "packageManagerVersion": null,
+        "cleanup": {
+          "RootProcessId": 60828,
+          "Completed": true,
+          "ProcessesObserved": 4,
+          "ProcessesTerminated": 2,
+          "Failure": null
+        }
+      },
+      {
+        "source": "vue-type-check",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\node.EXE",
+        "args": [
+          "node_modules\\vue-tsc\\bin\\vue-tsc.js",
+          "--build"
+        ],
+        "cwd": "D:\\Documents\\Projects\\chpaxson.github.io",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32",
+        "nodeExecutable": null,
+        "nodeVersion": null,
+        "packageManager": null,
+        "packageManagerExecutable": null,
+        "packageManagerVersion": null,
+        "cleanup": {
+          "RootProcessId": 46428,
+          "Completed": true,
+          "ProcessesObserved": 2,
+          "ProcessesTerminated": 0,
+          "Failure": null
+        }
+      },
+      {
+        "source": "production-build",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\node.EXE",
+        "args": [
+          "node_modules\\vite\\bin\\vite.js",
+          "build"
+        ],
+        "cwd": "D:\\Documents\\Projects\\chpaxson.github.io",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32",
+        "nodeExecutable": null,
+        "nodeVersion": null,
+        "packageManager": null,
+        "packageManagerExecutable": null,
+        "packageManagerVersion": null,
+        "cleanup": {
+          "RootProcessId": 7320,
+          "Completed": true,
+          "ProcessesObserved": 4,
+          "ProcessesTerminated": 0,
+          "Failure": null
+        }
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\node.EXE",
+        "args": [
+          "--experimental-transform-types",
+          "--experimental-vm-modules",
+          "--test",
+          "src\\serial\\__tests__\\*.test.mjs",
+          "src\\brady\\__tests__\\*.test.mjs"
+        ],
+        "cwd": "D:\\Documents\\Projects\\chpaxson.github.io",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32",
+        "nodeExecutable": null,
+        "nodeVersion": null,
+        "packageManager": null,
+        "packageManagerExecutable": null,
+        "packageManagerVersion": null,
+        "cleanup": {
+          "RootProcessId": 26036,
+          "Completed": true,
+          "ProcessesObserved": 14,
+          "ProcessesTerminated": 0,
+          "Failure": null
+        }
+      },
+      {
+        "source": "routed-tools-and-preferences",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\node.EXE",
+        "args": [
+          "node_modules\\vite\\bin\\vite.js",
+          "--host",
+          "127.0.0.1",
+          "--port",
+          "5176",
+          "--strictPort"
+        ],
+        "cwd": "D:\\Documents\\Projects\\chpaxson.github.io",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32",
+        "nodeExecutable": null,
+        "nodeVersion": null,
+        "packageManager": null,
+        "packageManagerExecutable": null,
+        "packageManagerVersion": null,
+        "cleanup": {
+          "RootProcessId": 41412,
+          "Completed": true,
+          "ProcessesObserved": 4,
+          "ProcessesTerminated": 2,
+          "Failure": null
+        }
+      }
+    ]
+  }
+}
