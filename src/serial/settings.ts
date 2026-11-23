@@ -6,11 +6,15 @@ export interface GlobalSettings {
   bufferSize: number
   tsFormat: TimestampFormat
   darkMode: boolean
+  tabbedView: boolean
 }
 
 export function defaultColumnSettings(index: number) {
   return {
     label: `Port ${index + 1}`,
+    transport: 'serial' as 'serial' | 'telnet',
+    telnetHost: '',
+    telnetPort: 23,
     baud: 9600,
     dataBits: 8 as 7 | 8,
     stopBits: 1 as 1 | 2,
@@ -29,12 +33,20 @@ export function defaultColumnSettings(index: number) {
     autoScroll: true,
     hexView: false,
     hexViewWidth: 170,
+    columnWidth: 0,
   }
 }
 export type ColumnSettings = ReturnType<typeof defaultColumnSettings>
 
 export function boundedInteger(value: number, min: number, max: number, fallback: number) {
   return Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback
+}
+
+export function adjustColumnWidths(left: number, right: number, delta: number) {
+  const maxWidth = Math.max(4000, left, right)
+  const movement = Math.max(Math.max(280 - left, right - maxWidth),
+    Math.min(Math.min(maxWidth - left, right - 280), Math.round(delta)))
+  return { left: left + movement, right: right - movement }
 }
 
 export function savedSettings<T extends object>(
@@ -88,13 +100,17 @@ export function validateGlobal(settings: GlobalSettings) {
 }
 
 export function validateColumn(settings: ColumnSettings) {
-  if (!Number.isInteger(settings.baud) || settings.baud < 1 ||
+  if (!['serial', 'telnet'].includes(settings.transport) ||
+      !Number.isInteger(settings.telnetPort) || settings.telnetPort < 1 || settings.telnetPort > 65535 ||
+      !Number.isInteger(settings.baud) || settings.baud < 1 ||
       ![7, 8].includes(settings.dataBits) || ![1, 2].includes(settings.stopBits) ||
       !['none', 'even', 'odd'].includes(settings.parity) ||
       !['none', 'hardware'].includes(settings.flowControl)) {
     throw new Error('Invalid port settings')
   }
   settings.hexViewWidth = boundedInteger(settings.hexViewWidth, 80, 2000, 170)
+  settings.columnWidth = settings.columnWidth === 0 ? 0 :
+    Number.isFinite(settings.columnWidth) ? Math.min(100000, Math.max(240, settings.columnWidth)) : 0
 }
 
 export function errorMessage(error: unknown) {

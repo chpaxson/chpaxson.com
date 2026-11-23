@@ -67,6 +67,8 @@
   .studio-dialog p { line-height: 1.5; }
   a { color: var(--accent); padding: 0; text-decoration: underline; transition: none; }
   a:hover { background: transparent; }
+  a.home-button { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; color: var(--text); background: var(--panel); font-size: .85rem; text-decoration: none; }
+  a.home-button:hover { border-color: var(--accent); }
   @media (max-width: 600px) {
     .tool-content { padding: 16px; }
     .topbar { padding: 20px 16px; flex-wrap: wrap; }

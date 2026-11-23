@@ -1,12 +1,14 @@
- you make <script setup lang="ts">
+<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import ConsoleMessage from './ConsoleMessage.vue'
+import { formatTimestamp } from './format'
+import { selectedCopyText, selectionCell } from './selection'
 import IntegerInput from '../components/IntegerInput.vue'
 import type { ConsoleColumn } from './use-column'
 import type { ColumnSettings, TimestampFormat } from './settings'
 
-const props = defineProps<{ column: ConsoleColumn; format: TimestampFormat }>()
-const { settings, connected, busy, sending, info, messages, logging } = props.column
+const props = defineProps<{ column: ConsoleColumn; format: TimestampFormat; visible: boolean }>()
+const { settings, connected, canReconnect, busy, sending, info, messages, logging, disconnectNotices } = props.column
 const sendInput = ref<HTMLInputElement>()
 const input = ref('')
 const portSettingsOpen = ref(false)
@@ -67,6 +69,7 @@ async function updateView() {
 watch([messages, () => settings.autoScroll, () => settings.hexView,
   () => settings.showTimestamps, () => settings.showMsgNum,
   () => settings.showOutgoing, () => props.format], updateView, { flush: 'post' })
+watch(() => props.visible, (visible) => { if (visible) void updateView() }, { flush: 'post' })
 
 let startX = 0
 let startWidth = 0
@@ -91,6 +94,32 @@ function resizeKey(event: KeyboardEvent) {
   layout()
 }
 
+function beginSelection(event: PointerEvent) {
+  const element = consoleElement.value
+  if (!element || event.button !== 0) return
+  const cell = selectionCell(event.target instanceof Node ? event.target : null)
+  element.classList.remove('select-text', 'select-meta', 'select-hex')
+  if (cell?.classList.contains('text-cell')) element.classList.add('select-text')
+  else if (cell?.classList.contains('meta-cell')) element.classList.add('select-meta')
+  else if (cell?.classList.contains('hex-cell')) element.classList.add('select-hex')
+}
+function copySelection(event: ClipboardEvent) {
+  const element = consoleElement.value
+  const selection = window.getSelection()
+  if (!element || !selection || !event.clipboardData) return
+  const text = selectedCopyText(element, selection)
+  if (text === null) return
+  event.clipboardData.setData('text/plain', text)
+  event.preventDefault()
+}
+function closeLogOptions(event: KeyboardEvent) {
+  const details = event.currentTarget
+  if (!(details instanceof HTMLDetailsElement) || !details.open) return
+  event.preventDefault()
+  event.stopPropagation()
+  details.open = false
+  details.querySelector('summary')?.focus()
+}
 function syncSelection() {
   const element = consoleElement.value
   if (!element) return
@@ -99,20 +128,23 @@ function syncSelection() {
   if (!settings.hexView || !selection || selection.isCollapsed || !selection.rangeCount) return
   const range = selection.getRangeAt(0)
   if (!element.contains(range.commonAncestorContainer)) return
+  const cell = selectionCell(selection.anchorNode)
+  const source = cell?.classList.contains('text-cell') ? '.char-cell' :
+    cell?.classList.contains('hex-cell') ? '.hex-byte' : ''
+  if (!source) return
+  const target = source === '.char-cell' ? '.hex-byte' : '.char-cell'
   for (const row of element.querySelectorAll('.line-wrap')) {
     if (!range.intersectsNode(row)) continue
-    for (const [source, target] of [['.char-cell', '.hex-byte'], ['.hex-byte', '.char-cell']]) {
-      let start = Infinity
-      let end = -Infinity
-      for (const span of row.querySelectorAll<HTMLElement>(source!)) {
-        if (range.intersectsNode(span)) {
-          start = Math.min(start, Number(span.dataset.b0))
-          end = Math.max(end, Number(span.dataset.b1))
-        }
+    let start = Infinity
+    let end = -Infinity
+    for (const span of row.querySelectorAll<HTMLElement>(source)) {
+      if (range.intersectsNode(span)) {
+        start = Math.min(start, Number(span.dataset.b0))
+        end = Math.max(end, Number(span.dataset.b1))
       }
-      for (const span of row.querySelectorAll<HTMLElement>(target!)) {
-        if (Number(span.dataset.b0) < end && Number(span.dataset.b1) > start) span.classList.add('sync-hl')
-      }
+    }
+    for (const span of row.querySelectorAll<HTMLElement>(target)) {
+      if (Number(span.dataset.b0) < end && Number(span.dataset.b1) > start) span.classList.add('sync-hl')
     }
   }
 }
@@ -137,23 +169,33 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="column panel" :aria-label="settings.label">
-    <div class="section-heading">
-      <h2>{{ String(column.index + 1).padStart(2, '0') }} / Serial port</h2>
-      <span class="badge" :class="{ online: connected }">{{ connected ? 'Connected' : 'Offline' }}</span>
-    </div>
     <div class="col-header">
       <input v-model="settings.label" type="text" class="col-label" aria-label="Column label" title="Used in log filenames">
       <button
-        class="connect-btn" :class="connected ? 'danger' : 'primary'" :disabled="busy"
-        @click="connected ? column.disconnect() : column.connect()"
-      >{{ busy ? 'Please wait...' : connected ? 'Disconnect' : 'Connect' }}</button>
-      <span class="conn-info" :title="info">{{ info }}</span>
+        class="connect-btn" :class="{ connected, disconnected: !connected && canReconnect }" :disabled="busy || sending"
+        :title="connected ? 'Connected; click to disconnect' : canReconnect ? 'Reconnect to the previous connection' : 'Connect'"
+        @click="connected ? column.disconnect() : canReconnect ? column.reconnect() : column.connect()"
+      >{{ busy ? 'Please wait...' : connected ? 'Connected' : canReconnect ? 'Reconnect' : 'Connect' }}</button>
+      <button v-if="settings.transport === 'serial' && canReconnect && !connected" :disabled="busy" title="Choose a different port" @click="column.connect()">Choose port</button>
       <button class="port-settings-btn" :class="{ open: portSettingsOpen }"
         :aria-expanded="portSettingsOpen" @click="portSettingsOpen = !portSettingsOpen"
-      >Port Settings</button>
+      >Options</button>
+      <span v-if="info" class="conn-info" :title="info">{{ info }}</span>
     </div>
     <div v-if="portSettingsOpen" class="conn-settings-panel">
       <div class="conn-settings-grid">
+        <label class="field">Connection
+          <select v-model="settings.transport" :disabled="connected || busy"><option value="serial">Serial</option><option value="telnet">Telnet</option></select>
+        </label>
+        <template v-if="settings.transport === 'telnet'">
+          <label class="field">Host or IP address
+            <input v-model.trim="settings.telnetHost" type="text" :disabled="connected || busy" placeholder="192.168.1.10">
+          </label>
+          <label class="field">Telnet port
+            <IntegerInput v-model="settings.telnetPort" label="Telnet port" :min="1" :max="65535" :disabled="connected || busy" />
+          </label>
+        </template>
+        <template v-else>
         <label class="field">Baud rate
           <IntegerInput v-model="settings.baud" label="Baud rate" list="baudPresets" :min="1" required :disabled="connected || busy" />
         </label>
@@ -169,7 +211,9 @@ onBeforeUnmount(() => {
         <label class="field">Flow control
           <select v-model="settings.flowControl" :disabled="connected || busy"><option value="none">None</option><option value="hardware">Hardware</option></select>
         </label>
+        </template>
       </div>
+      <p v-if="settings.transport === 'telnet'">Requires the local Telnet gateway. Telnet is unencrypted.</p>
     </div>
     <form class="send-row" @submit.prevent="send()">
       <input ref="sendInput" v-model="input" type="text" class="send-input" placeholder="Message to send..." aria-label="Message to send">
@@ -181,7 +225,7 @@ onBeforeUnmount(() => {
     <div class="console-toolbar">
       <button class="options-btn" :class="{ open: settings.optionsOpen }"
         :aria-expanded="settings.optionsOpen" @click="settings.optionsOpen = !settings.optionsOpen"
-      >Send &amp; Display Options</button>
+      >Send / display</button>
       <button class="toggle-btn autoscroll-btn" :class="{ active: settings.autoScroll }"
         :aria-pressed="settings.autoScroll" @click="settings.autoScroll = !settings.autoScroll"
       >Auto-scroll</button>
@@ -200,6 +244,7 @@ onBeforeUnmount(() => {
     <div class="console-wrapper">
       <div ref="consoleElement" class="console" tabindex="0" :aria-label="`${settings.label} messages`"
         :style="{ gridTemplateColumns: settings.hexView ? `max-content minmax(0, 1fr) ${hexWidth}px` : 'max-content minmax(0, 1fr)' }"
+        @pointerdown="beginSelection" @copy="copySelection"
       >
         <ConsoleMessage v-for="message in visibleMessages" :key="message.num"
           :message="message" :settings="settings" :format="format"
@@ -213,18 +258,31 @@ onBeforeUnmount(() => {
         @pointerdown="startResize" @pointermove="resize" @pointerup="dragging = false"
         @lostpointercapture="dragging = false" @keydown="resizeKey"
       />
+      <div v-if="disconnectNotices.length" class="disconnect-notices">
+        <div v-for="notice in disconnectNotices" :key="notice.id" class="disconnect-notice" role="alert">
+          <div><time :datetime="notice.time.toISOString()">{{ formatTimestamp(notice.time, format) }}</time>
+            <span>Connection lost. Reconnect when available.</span></div>
+          <button type="button" aria-label="Dismiss disconnect warning"
+            @click="column.dismissDisconnectNotice(notice.id)">×</button>
+        </div>
+      </div>
     </div>
     <div class="log-row">
       <button class="clear-btn" @click="column.clear()">Clear</button>
       <button class="log-btn" @click="logging ? column.stopLogging() : column.startLogging()"
       >{{ logging ? 'Stop Logging (Save File)' : 'Start Logging' }}</button>
-      <button class="toggle-btn" :class="{ active: settings.logMetadata }"
-        :aria-pressed="settings.logMetadata" @click="settings.logMetadata = !settings.logMetadata"
-      >Include metadata in log</button>
-      <button class="toggle-btn" :class="{ active: settings.logIncludeBuffered }"
-        :aria-pressed="settings.logIncludeBuffered" @click="settings.logIncludeBuffered = !settings.logIncludeBuffered"
-        title="Include messages already in the buffer when logging starts"
-      >Include buffered history</button>
+      <details class="log-options" @keydown.esc="closeLogOptions">
+        <summary>Log options</summary>
+        <div class="log-options-panel">
+          <button class="toggle-btn" :class="{ active: settings.logMetadata }"
+            :aria-pressed="settings.logMetadata" @click="settings.logMetadata = !settings.logMetadata"
+          >Include metadata in log</button>
+          <button class="toggle-btn" :class="{ active: settings.logIncludeBuffered }"
+            :aria-pressed="settings.logIncludeBuffered" @click="settings.logIncludeBuffered = !settings.logIncludeBuffered"
+            title="Include messages already in the buffer when logging starts"
+          >Include buffered history</button>
+        </div>
+      </details>
     </div>
   </section>
 </template>

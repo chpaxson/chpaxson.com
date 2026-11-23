@@ -38,7 +38,7 @@ The website and both tools are served by the same Vue Router application.
 
 The main navigation's **Tools** page (`/tools`) links to **Brady M211 Label Studio**
 and **Serial Console** at `/bradym211` and `/serialconsole`. Both are lazy-loaded
-Vue Router pages with the main navigation visible. The old `/bradym211.html`
+Vue Router pages with a **Home** button in place of the main navigation. The old `/bradym211.html`
 and `/serialconsole.html` URLs remain supported as router aliases. Direct links
 on GitHub Pages use the existing `404.html` SPA fallback.
 
@@ -46,9 +46,48 @@ on GitHub Pages use the existing `404.html` SPA fallback.
 
 The Serial Console route loads the Vue 3 / TypeScript components in `src/serial/`.
 Open it in desktop Chrome or Edge over HTTPS or localhost. Each of up to eight
-columns connects to a separate device with its own baud rate, data/stop bits,
-parity, and flow control. **Refresh Ports** reopens the connected devices without
-another device picker.
+columns connects to a separate serial device or Telnet target. Serial devices
+have their own baud rate, data/stop bits, parity, and flow control. **Refresh
+Ports** reopens connected devices without another device picker.
+
+The connection button is green while connected and red after disconnection. Click
+the red **Reconnect** button to reopen the same port, or **Choose port** to
+select another. The remembered device lasts for the current page session.
+Unexpected disconnections also show a dismissible, timestamped warning in the
+bottom-right corner of the affected console.
+Use **Tabbed view** in the title bar to switch between tabs and columns without
+closing connections. Drag a divider or use its arrow keys to resize only its two
+adjacent columns; double-click it or press Home to make those columns equal.
+Column widths are saved with the other preferences.
+At 600 px wide or less, ports switch to tabs; connections and logging continue
+for background tabs. Disconnect warnings are indicated on the affected tab.
+Use Left/Right or Home/End to navigate tabs. Resizing returns
+when the screen widens unless tabbed view is selected.
+
+#### Telnet connections
+
+Browsers cannot connect directly to Telnet TCP ports. Run the local gateway on
+the same computer as the browser (Node.js and the project dependencies are
+required), explicitly allowing the website origin and each target:
+
+```sh
+npm run telnet-gateway -- --origin https://chpaxson.github.io --target 192.168.1.10:23 --target example.local:2323
+```
+
+Use the exact origin in the browser's address bar, without a trailing slash; for
+local development it may be `http://localhost:5173`. Additional `--origin` and
+`--target` arguments can be supplied. IPv6 targets use brackets, for example
+`[::1]:23`. In a column's **Options**, select **Telnet** and enter an allowed
+host and port. The selection and address persist across reloads; the connection
+does not. Stop the gateway with Ctrl+C.
+
+The gateway listens only on `127.0.0.1:8765`, checks the browser origin and
+restricts destinations to the configured allowlist. Only allow origins and
+targets you trust: scripts running on an allowed origin can access those
+targets while the gateway runs. Telnet is **unencrypted**, including passwords;
+use it only on trusted networks. The gateway declines Telnet option negotiation
+and does not implement terminal emulation beyond the console's existing display.
+Browser local-network permissions may need to be granted.
 
 Send text with optional CR/LF endings, `\xHH` byte escapes, or backtick-delimited
 key escapes such as `` `CTRL+C` `` and `` `ESC` ``. **Send Char** sends only the
@@ -57,9 +96,13 @@ retain the input for retry.
 
 Display options include ANSI colors/styles, timestamps, message numbers,
 outgoing data visibility, auto-scroll, and a resizable text/hex view with linked
-selection highlighting. The per-column buffer holds 10–20,000 messages.
+selection highlighting. Metadata has a separate background; copying a selection
+started in the message text excludes metadata and hex data across messages.
+Selections started in the metadata or hex view copy only that portion.
+The per-column buffer holds 10–20,000 messages.
 **Start Logging** records messages in memory; **Stop Logging (Save File)**
 downloads the log. Logging can include metadata and existing buffered history.
+These logging options are under **Log options** beside the logging button.
 Removing a logging column prompts before saving its log; leaving while logging
 requests browser confirmation. Incoming data and log contents are not uploaded.
 

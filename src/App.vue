@@ -4,7 +4,7 @@ import { RouterView, useRoute } from 'vue-router'
 import NavigationBar from './components/NavigationBar.vue'
 
 const route = useRoute()
-const showNav = computed(() => !route.path.startsWith('/amc'))
+const showNav = computed(() => !route.path.startsWith('/amc') && !route.meta.hideNav)
 const fullHeight = computed(() => !!route.meta.fullHeight)
 watch(() => route.meta.title, (title) => {
   document.title = typeof title === 'string' ? title : 'Charles Paxson - Mechanical Engineer'
@@ -38,6 +38,7 @@ watch(() => route.meta.title, (title) => {
 
 .full-height > .navigation-bar {
   flex-shrink: 0;
+  padding: 0.5rem 0;
 }
 
 .full-height > .main-content {

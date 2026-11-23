@@ -569,7 +569,7 @@ function cutNow() {
     <header class="topbar">
       <div><span class="eyebrow">BRADY / WEB BLUETOOTH</span><h1>M211 Label Studio</h1></div>
       <div class="topbar-controls">
-        <RouterLink to="/tools">All tools</RouterLink>
+        <RouterLink class="home-button" to="/">Home</RouterLink>
         <label>Units<select v-model="distanceUnit" aria-label="Measurement units">
           <option value="mm">mm</option><option value="in">inch</option><option value="px">pixel</option>
         </select></label>

@@ -4,8 +4,10 @@ import { nextTick } from 'vue'
 import { readFile } from 'node:fs/promises'
 import { compileTemplate, parse } from '@vue/compiler-sfc'
 import { ansiParts, logFilename, logLine, messageMeta, outgoingParts, parseOutgoingText, ReceivedText, resolveKeyCombo } from '../format.ts'
-import { boundedInteger, defaultColumnSettings, savedSettings, validateColumn, validateGlobal } from '../settings.ts'
+import { adjustColumnWidths, boundedInteger, defaultColumnSettings, savedSettings, validateColumn, validateGlobal } from '../settings.ts'
 import { useColumn } from '../use-column.ts'
+import { selectedCopyText } from '../selection.ts'
+import { TelnetDecoder, encodeTelnet } from '../../../scripts/telnet-codec.mjs'
 
 function cookies() {
   const jar = new Map()
@@ -19,6 +21,51 @@ function cookies() {
   }
 }
 const globalSettings = () => ({ numColumns: 2, bufferSize: 10, tsFormat: 'time-ms', darkMode: true })
+
+test('resizing a divider preserves its pair width and respects both minimum widths', () => {
+  assert.deepEqual(adjustColumnWidths(400.5, 500.5, 80), { left: 480.5, right: 420.5 })
+  assert.deepEqual(adjustColumnWidths(400, 500, -1000), { left: 280, right: 620 })
+  assert.deepEqual(adjustColumnWidths(400, 500, 1000), { left: 620, right: 280 })
+  assert.deepEqual(adjustColumnWidths(3990, 500, 100), { left: 4000, right: 490 })
+})
+
+test('multi-message copying uses only the selected lane and leaves other selections native', () => {
+  const original = globalThis.Element
+  class MockElement {
+    constructor(name) { this.name = name; this.classList = { contains: (value) => value === name } }
+    closest() { return this }
+    contains(node) { return node === this || node.parentElement === this }
+  }
+  globalThis.Element = MockElement
+  try {
+    const root = { contains: (node) => !node.outside }
+    const text = new MockElement('text-cell')
+    const meta = new MockElement('meta-cell')
+    const hex = new MockElement('hex-cell')
+    const focus = { parentElement: new MockElement('text-cell') }
+    const fragments = {
+      '.text-cell': [{ textContent: 'pha\n' }, { textContent: 'Bra' }],
+      '.meta-cell': [{ textContent: '#1 <-' }, { textContent: '#2 ->' }],
+      '.hex-cell': [{ textContent: '41 FF' }, { textContent: '42' }],
+    }
+    const selection = {
+      isCollapsed: false, rangeCount: 1, anchorNode: { parentElement: text }, focusNode: focus,
+      getRangeAt: () => ({ cloneContents: () => ({ querySelectorAll: (selector) => fragments[selector] }) }),
+    }
+    assert.equal(selectedCopyText(root, selection), 'pha\nBra')
+    selection.anchorNode.parentElement = meta
+    assert.equal(selectedCopyText(root, selection), '#1 <-\n#2 ->')
+    selection.anchorNode.parentElement = hex
+    assert.equal(selectedCopyText(root, selection), '41 FF 42')
+    selection.focusNode = { parentElement: hex }
+    assert.equal(selectedCopyText(root, selection), null)
+    selection.focusNode = { outside: true }
+    assert.equal(selectedCopyText(root, selection), null)
+  } finally {
+    if (original === undefined) delete globalThis.Element
+    else globalThis.Element = original
+  }
+})
 
 test('outgoing encoding preserves UTF-8, raw bytes, key escapes, and unknown tokens', () => {
   assert.deepEqual([...parseOutgoingText('A\\x00`CTRL+D`💡\r\n', true, true)],
@@ -78,9 +125,17 @@ test('existing preference cookies are restored, validated, and persisted', async
   assert.equal(settings.label, 'Existing')
   assert.equal(settings.baud, 115200)
   assert.equal(settings.sendLF, true)
+  assert.equal(settings.transport, 'serial')
+  settings.transport = 'telnet'
+  settings.telnetHost = '192.168.1.10'
+  settings.telnetPort = 2323
   settings.label = 'Updated'
   await nextTick()
   assert.match(decodeURIComponent(document.cookie), /Updated/)
+  const restored = savedSettings('wsc_col_0', defaultColumnSettings(0), validateColumn, (message) => errors.push(message))
+  assert.equal(restored.transport, 'telnet')
+  assert.equal(restored.telnetHost, '192.168.1.10')
+  assert.equal(restored.telnetPort, 2323)
   assert.deepEqual(errors, [])
   document.cookie = `wsc_global=${encodeURIComponent(JSON.stringify({ numColumns: 999, bufferSize: -1 }))}`
   const global = savedSettings('wsc_global', globalSettings(), validateGlobal, (message) => errors.push(message))
@@ -92,18 +147,83 @@ test('existing preference cookies are restored, validated, and persisted', async
   assert.equal(errors.length, 1)
 })
 
+test('Telnet negotiation survives split packets and escapes literal IAC bytes', () => {
+  const decoder = new TelnetDecoder()
+  assert.deepEqual([...decoder.push(Buffer.from([65, 255])).data], [65])
+  const result = decoder.push(Buffer.from([251, 1, 255, 253, 3, 255, 250, 1, 255]))
+  assert.deepEqual([...result.replies], [255, 254, 1, 255, 252, 3])
+  assert.deepEqual([...result.data], [])
+  assert.deepEqual([...decoder.push(Buffer.from([240, 66, 255, 255])).data], [66, 255])
+  assert.deepEqual([...encodeTelnet(Buffer.from([65, 255, 66]))], [65, 255, 255, 66])
+})
+
+test('Telnet column sends, receives, reconnects and reports gateway failures', async () => {
+  cookies()
+  const original = globalThis.WebSocket
+  const sockets = []
+  class MockWebSocket {
+    constructor(url) {
+      assert.equal(url, 'ws://127.0.0.1:8765')
+      this.sent = []
+      sockets.push(this)
+      queueMicrotask(() => this.onopen())
+    }
+    send(data) { this.sent.push(data) }
+    close() { this.closed = true }
+    receive(data) { this.onmessage({ data }) }
+    end(reason = '') { this.onclose({ reason, code: reason ? 1011 : 1000 }) }
+  }
+  globalThis.WebSocket = MockWebSocket
+  const errors = []
+  const column = useColumn(0, globalSettings(), (message) => errors.push(message))
+  try {
+    column.settings.transport = 'telnet'
+    column.settings.telnetHost = 'host.example'
+    column.settings.telnetPort = 2323
+    const connecting = column.connect()
+    await settle()
+    assert.deepEqual(JSON.parse(sockets[0].sent[0]), { host: 'host.example', port: 2323 })
+    sockets[0].receive('{"type":"ready"}')
+    await connecting
+    assert.equal(column.connected.value, true)
+    sockets[0].receive(new Uint8Array([65]).buffer)
+    assert.equal(column.messages.value[0].text, 'A')
+    assert.equal(await column.send('B'), true)
+    assert.deepEqual([...sockets[0].sent[1]], [66, 10])
+    sockets[0].end()
+    await settle()
+    assert.equal(column.connected.value, false)
+    assert.equal(column.disconnectNotices.value.length, 1)
+    const retry = column.reconnect()
+    await settle()
+    sockets[1].end('Target not allowed by gateway')
+    await retry
+    assert.match(errors.at(-1), /Target not allowed/)
+    const retryAgain = column.reconnect()
+    await settle()
+    sockets[2].receive('{"type":"ready"}')
+    await retryAgain
+    assert.equal(column.connected.value, true)
+    await column.dispose()
+    assert.equal(sockets[2].closed, true)
+  } finally { globalThis.WebSocket = original }
+})
+
 function device() {
   let input
   const writes = []
   let opens = 0
   let closes = 0
   let failWrites = false
+  let failOpen = false
+  let requests = 0
   const port = {
     readable: null,
     writable: null,
     getInfo: () => ({ usbVendorId: 0x1234, usbProductId: 1 }),
     async open(options) {
       assert.equal(options.baudRate, 9600)
+      if (failOpen) throw new Error('device unavailable')
       opens++
       this.readable = new ReadableStream({ start(controller) { input = controller } })
       this.writable = new WritableStream({
@@ -120,11 +240,13 @@ function device() {
     },
   }
   const api = new EventTarget()
-  api.requestPort = async () => port
+  api.requestPort = async () => { requests++; return port }
   Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { serial: api } })
   return {
     port, writes, receive: (bytes) => input.enqueue(new Uint8Array(bytes)),
     end: () => input.close(), failWrites: () => { failWrites = true },
+    setOpenFailure: (value) => { failOpen = value },
+    get requests() { return requests },
     get opens() { return opens }, get closes() { return closes },
   }
 }
@@ -164,6 +286,45 @@ test('serial lifecycle sends exact bytes, bounds buffers, refreshes the same por
   assert.deepEqual(errors, [])
 })
 
+test('disconnected ports retain their device for reconnect, including after a failed retry', async () => {
+  cookies()
+  const mock = device()
+  const errors = []
+  const column = useColumn(0, globalSettings(), (message) => errors.push(message))
+  assert.equal(column.canReconnect.value, false)
+  await column.connect()
+  assert.equal(column.canReconnect.value, true)
+  mock.end()
+  await settle()
+  assert.equal(column.connected.value, false)
+  assert.equal(column.canReconnect.value, true)
+  assert.equal(column.disconnectNotices.value.length, 1)
+  const firstNotice = column.disconnectNotices.value[0]
+  mock.setOpenFailure(true)
+  await column.reconnect()
+  assert.equal(column.connected.value, false)
+  assert.equal(column.canReconnect.value, true)
+  assert.match(errors.at(-1), /could not reconnect.*device unavailable/)
+  mock.setOpenFailure(false)
+  await column.reconnect()
+  assert.equal(column.connected.value, true)
+  assert.equal(mock.requests, 1)
+  assert.equal(mock.opens, 2)
+  await column.disconnect()
+  assert.equal(column.canReconnect.value, true)
+  assert.equal(column.disconnectNotices.value.length, 1)
+  await column.reconnect()
+  assert.equal(column.connected.value, true)
+  assert.equal(mock.requests, 1)
+  column.handleDisconnect()
+  column.handleDisconnect()
+  await settle()
+  assert.equal(column.disconnectNotices.value.length, 2)
+  column.dismissDisconnectNotice(firstNotice.id)
+  assert.equal(column.disconnectNotices.value.length, 1)
+  await column.dispose()
+})
+
 test('unexpected end and write failures are surfaced and cleanup cannot deadlock', async () => {
   cookies()
   const mock = device()
@@ -179,7 +340,8 @@ test('unexpected end and write failures are surfaced and cleanup cannot deadlock
   await column.disconnect()
   assert.equal(column.connected.value, false)
   assert.equal(mock.closes, 1)
-  assert.ok(errors.some((error) => error.includes('stream ended')))
+  assert.equal(column.disconnectNotices.value.length, 1)
+  assert.ok(column.disconnectNotices.value[0].time instanceof Date)
 })
 
 test('logs include buffered history and keep recording after visible messages are cleared', async () => {

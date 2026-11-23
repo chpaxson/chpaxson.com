@@ -30,14 +30,14 @@ const router = createRouter({
       alias: "/bradym211.html",
       name: "label-studio",
       component: () => import("../brady/LabelStudio.vue"),
-      meta: { title: "M211 Label Studio" },
+      meta: { title: "M211 Label Studio", hideNav: true },
     },
     {
       path: "/serialconsole",
       alias: "/serialconsole.html",
       name: "serial-console",
       component: () => import("../serial/SerialConsole.vue"),
-      meta: { fullHeight: true, title: "Web Serial Console" },
+      meta: { fullHeight: true, title: "Web Serial Console", hideNav: true },
     },
     {
       path: "/resume",
