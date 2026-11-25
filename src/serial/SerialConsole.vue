@@ -3,7 +3,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch 
 import { onBeforeRouteLeave, RouterLink } from 'vue-router'
 import ConsoleColumn from './ConsoleColumn.vue'
 import IntegerInput from '../components/IntegerInput.vue'
+import GatewaySettings from './GatewaySettings.vue'
 import { serialApi, useColumn, type ConsoleColumn as Column } from './use-column'
+import { useGateway } from './use-gateway'
 import { adjustColumnWidths, boundedInteger, savedSettings, validateGlobal, type GlobalSettings } from './settings'
 
 const notice = ref('')
@@ -14,8 +16,10 @@ function report(message: string) {
 const settings = savedSettings<GlobalSettings>('wsc_global', {
   numColumns: 2, bufferSize: 500, tsFormat: 'time-ms', darkMode: true, tabbedView: false,
 }, validateGlobal, report)
+const gateway = useGateway(report)
+const gatewayDialog = ref<InstanceType<typeof GatewaySettings>>()
 const columns = shallowRef<Column[]>(Array.from({ length: settings.numColumns },
-  (_, index) => useColumn(index, settings, report)))
+  (_, index) => useColumn(index, settings, report, gateway.token)))
 const supported = !!serialApi()
 const refreshing = ref(false)
 const changingColumns = ref(false)
@@ -28,6 +32,11 @@ const settingsButton = ref<HTMLButtonElement>()
 const baudPresets = [300, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200, 230400, 460800, 921600]
 
 watch(() => settings.bufferSize, () => columns.value.forEach((column) => column.trim()))
+watch(gateway.unlocked, (unlocked) => {
+  if (!unlocked) columns.value.forEach((column) => {
+    if (column.settings.transport === 'telnet' && (column.connected.value || column.busy.value)) void column.disconnect()
+  })
+}, { flush: 'sync' })
 async function changeBuffer(event: Event) {
   const input = event.target as HTMLInputElement
   settings.bufferSize = boundedInteger(input.valueAsNumber, 10, 20000, 500)
@@ -51,7 +60,7 @@ async function changeColumns(event: Event) {
       await column.dispose()
     }
     columns.value = Array.from({ length: count },
-      (_, index) => columns.value[index] ?? useColumn(index, settings, report))
+      (_, index) => columns.value[index] ?? useColumn(index, settings, report, gateway.token))
     if (activeTab.value >= count) activeTab.value = count - 1
     settings.numColumns = count
   } finally { changingColumns.value = false }
@@ -166,6 +175,7 @@ onBeforeUnmount(() => {
   narrowQuery.removeEventListener('change', updateNarrowScreen)
   serialApi()?.removeEventListener('disconnect', onDisconnect)
   window.removeEventListener('beforeunload', beforeUnload)
+  gateway.lock()
   columns.value.forEach((column) => { void column.dispose() })
 })
 </script>
@@ -214,7 +224,8 @@ onBeforeUnmount(() => {
       :style="{ flexBasis: tabbed || !column.settings.columnWidth ? '0px' : `${column.settings.columnWidth}px`,
         flexGrow: tabbed || !column.settings.columnWidth ? 1 : 0 }"
     >
-      <ConsoleColumn :column="column" :format="settings.tsFormat" :visible="!tabbed || activeTab === column.index" />
+      <ConsoleColumn :column="column" :format="settings.tsFormat" :visible="!tabbed || activeTab === column.index"
+        @gateway="gatewayDialog?.show()" />
       <div v-if="!tabbed && column.index < columns.length - 1" class="column-resizer" role="separator" aria-orientation="vertical"
         :aria-label="`Resize divider between ${column.settings.label} and ${columns[column.index + 1]?.settings.label}`"
         tabindex="0"
@@ -250,6 +261,7 @@ onBeforeUnmount(() => {
       <div class="actions"><button class="primary" @click="closeSettings">Close</button></div>
     </div>
   </dialog>
+  <GatewaySettings ref="gatewayDialog" :gateway="gateway" />
   <datalist id="baudPresets"><option v-for="baud in baudPresets" :key="baud" :value="baud" /></datalist>
   </div>
 </template>

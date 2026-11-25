@@ -27,3 +27,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
+/public/downloads/telnet-gateway.exe
+/gateway/.build/

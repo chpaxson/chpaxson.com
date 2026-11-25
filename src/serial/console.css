@@ -105,6 +105,14 @@
   .console-settings { width: min(360px, calc(100vw - 32px)); }
   .console-settings .field { margin-bottom: 16px; }
   .console-settings .actions { justify-content: flex-end; }
+  .gateway-dialog { width: min(520px, calc(100vw - 32px)); }
+  .gateway-dialog .field { margin-bottom: 8px; }
+  .gateway-dialog .actions { justify-content: flex-end; margin-top: 12px; }
+  .gateway-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 6px; font-size: .75rem; }
+  .gateway-targets { padding: 0; list-style: none; }
+  .gateway-targets li { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; overflow-wrap: anywhere; }
+  .gateway-add { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin-bottom: 12px; }
+  .gateway-add .field { flex: 1 1 150px; margin: 0; }
   .notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; white-space: pre-wrap; max-height: 25vh; overflow: auto; flex-shrink: 0; }
   @media (max-width: 600px) {
     .topbar { padding: 6px; }

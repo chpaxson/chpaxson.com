@@ -8,6 +8,8 @@ import type { ConsoleColumn } from './use-column'
 import type { ColumnSettings, TimestampFormat } from './settings'
 
 const props = defineProps<{ column: ConsoleColumn; format: TimestampFormat; visible: boolean }>()
+const emit = defineEmits<{ gateway: [] }>()
+const gatewayDownload = `${import.meta.env.BASE_URL}downloads/telnet-gateway.exe`
 const { settings, connected, canReconnect, busy, sending, info, messages, logging, disconnectNotices } = props.column
 const sendInput = ref<HTMLInputElement>()
 const input = ref('')
@@ -213,7 +215,11 @@ onBeforeUnmount(() => {
         </label>
         </template>
       </div>
-      <p v-if="settings.transport === 'telnet'">Requires the local Telnet gateway. Telnet is unencrypted.</p>
+      <div v-if="settings.transport === 'telnet'" class="gateway-actions">
+        <button type="button" @click="emit('gateway')">Manage gateway</button>
+        <a :href="gatewayDownload" download>Download Windows gateway</a>
+        <span>Telnet is unencrypted.</span>
+      </div>
     </div>
     <form class="send-row" @submit.prevent="send()">
       <input ref="sendInput" v-model="input" type="text" class="send-input" placeholder="Message to send..." aria-label="Message to send">

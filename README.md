@@ -66,28 +66,65 @@ when the screen widens unless tabbed view is selected.
 
 #### Telnet connections
 
-Browsers cannot connect directly to Telnet TCP ports. Run the local gateway on
-the same computer as the browser (Node.js and the project dependencies are
-required), explicitly allowing the website origin and each target:
+Browsers cannot connect directly to Telnet TCP ports. In a column's **Options**,
+select **Telnet** and download the Windows gateway. Put the executable in a
+permanent location before enabling startup, then run these commands from that
+directory in PowerShell:
 
-```sh
-npm run telnet-gateway -- --origin https://chpaxson.github.io --target 192.168.1.10:23 --target example.local:2323
+```powershell
+.\telnet-gateway.exe init
+.\telnet-gateway.exe token
+.\telnet-gateway.exe run
 ```
 
-Use the exact origin in the browser's address bar, without a trailing slash; for
-local development it may be `http://localhost:5173`. Additional `--origin` and
-`--target` arguments can be supplied. IPv6 targets use brackets, for example
-`[::1]:23`. In a column's **Options**, select **Telnet** and enter an allowed
-host and port. The selection and address persist across reloads; the connection
-does not. Stop the gateway with Ctrl+C.
+Initialization creates a random token and a private, user-restricted configuration
+directory in `%LOCALAPPDATA%\SerialConsoleGateway`. Copy the token from the local
+terminal, open **Manage gateway**, and enter it to unlock this browser page.
+Add or remove host/port destinations there; removing a destination disconnects
+its active sessions. Multiple targets and connections are supported. Select an
+allowed address and port in each column's **Options** to connect. IPv6 addresses
+must use brackets, for example `[::1]`. Allowed destinations persist in the
+gateway; the browser keeps the token only in memory and requires it again after
+reload. **Lock gateway** disconnects this page's Telnet sessions. Stop a manually
+run gateway with Ctrl+C.
 
-The gateway listens only on `127.0.0.1:8765`, checks the browser origin and
-restricts destinations to the configured allowlist. Only allow origins and
-targets you trust: scripts running on an allowed origin can access those
-targets while the gateway runs. Telnet is **unencrypted**, including passwords;
-use it only on trusted networks. The gateway declines Telnet option negotiation
-and does not implement terminal emulation beyond the console's existing display.
-Browser local-network permissions may need to be granted.
+The default allowed origin is `https://chpaxson.github.io`. To use another
+origin or local development, specify every allowed origin during initial setup:
+
+```powershell
+.\telnet-gateway.exe init --origin https://chpaxson.github.io --origin http://127.0.0.1:5173
+```
+
+Origins must match the browser address exactly, without a trailing slash; HTTP
+origins are permitted only on localhost. To opt in to starting the executable at
+Windows user login, run `.\telnet-gateway.exe install-startup`. Remove that
+shortcut with `.\telnet-gateway.exe uninstall-startup`. Startup is not enabled
+automatically, and a running gateway remains locked to unauthenticated clients.
+The shortcut points to the executable's current path, so reinstall it if the
+executable moves. No administrator privileges are required. The executable is
+unsigned; Windows may display a SmartScreen warning.
+
+The Python source is in `gateway/`; on other systems, install
+`gateway/requirements.txt` and run `python gateway/gateway.py` with the same
+commands. The packaged executable and startup commands are Windows-specific.
+The deployment workflow builds the executable on Windows and includes it in the
+website download.
+
+The gateway listens only on `127.0.0.1:8765` and requires both an allowed
+browser origin and the token before accepting commands or connections. Do not
+share the token. Scripts on an allowed origin that obtain it can change the
+allowlist and access those destinations; other programs running as your user may
+also be able to read it. Local administrators can take ownership of the files.
+Only allow websites and targets you trust. Telnet is **unencrypted**, including
+passwords; use it only on trusted networks. The gateway declines Telnet option
+negotiation and does not implement terminal emulation beyond the console's
+existing display. Browser local-network permissions may need to be granted.
+
+To run gateway tests from a Python environment with the gateway requirements:
+
+```sh
+python -m unittest discover -s gateway -p test_gateway.py -v
+```
 
 Send text with optional CR/LF endings, `\xHH` byte escapes, or backtick-delimited
 key escapes such as `` `CTRL+C` `` and `` `ESC` ``. **Send Char** sends only the

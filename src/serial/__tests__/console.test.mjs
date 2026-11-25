@@ -7,7 +7,7 @@ import { ansiParts, logFilename, logLine, messageMeta, outgoingParts, parseOutgo
 import { adjustColumnWidths, boundedInteger, defaultColumnSettings, savedSettings, validateColumn, validateGlobal } from '../settings.ts'
 import { useColumn } from '../use-column.ts'
 import { selectedCopyText } from '../selection.ts'
-import { TelnetDecoder, encodeTelnet } from '../../../scripts/telnet-codec.mjs'
+import { useGateway } from '../use-gateway.ts'
 
 function cookies() {
   const jar = new Map()
@@ -147,14 +147,39 @@ test('existing preference cookies are restored, validated, and persisted', async
   assert.equal(errors.length, 1)
 })
 
-test('Telnet negotiation survives split packets and escapes literal IAC bytes', () => {
-  const decoder = new TelnetDecoder()
-  assert.deepEqual([...decoder.push(Buffer.from([65, 255])).data], [65])
-  const result = decoder.push(Buffer.from([251, 1, 255, 253, 3, 255, 250, 1, 255]))
-  assert.deepEqual([...result.replies], [255, 254, 1, 255, 252, 3])
-  assert.deepEqual([...result.data], [])
-  assert.deepEqual([...decoder.push(Buffer.from([240, 66, 255, 255])).data], [66, 255])
-  assert.deepEqual([...encodeTelnet(Buffer.from([65, 255, 66]))], [65, 255, 255, 66])
+test('gateway unlocks only after authentication, manages targets, and forgets its token on lock', async () => {
+  const original = globalThis.WebSocket
+  let socket
+  class MockWebSocket {
+    static OPEN = 1
+    readyState = 1
+    constructor() { socket = this; this.sent = []; queueMicrotask(() => this.onopen()) }
+    send(value) { this.sent.push(JSON.parse(value)) }
+    close() { this.closed = true }
+    receive(value) { this.onmessage({ data: JSON.stringify(value) }) }
+  }
+  globalThis.WebSocket = MockWebSocket
+  const errors = []
+  const gateway = useGateway((message) => errors.push(message))
+  try {
+    const pending = gateway.unlock('secret')
+    await settle()
+    assert.equal(gateway.unlocked.value, false)
+    assert.deepEqual(socket.sent[0], { type: 'control', token: 'secret' })
+    socket.receive({ type: 'targets', targets: [{ host: 'example.test', port: 23 }] })
+    await pending
+    assert.equal(gateway.token(), 'secret')
+    assert.equal(gateway.targets.value[0].host, 'example.test')
+    gateway.updateTarget('add', '  test.local  ', 2323)
+    assert.deepEqual(socket.sent[1], { type: 'add', host: 'test.local', port: 2323 })
+    socket.receive({ type: 'error', message: 'invalid target' })
+    assert.match(gateway.error.value, /invalid target/)
+    gateway.lock()
+    assert.equal(gateway.token(), null)
+    assert.equal(gateway.unlocked.value, false)
+    assert.deepEqual(gateway.targets.value, [])
+    assert.equal(socket.closed, true)
+  } finally { globalThis.WebSocket = original }
 })
 
 test('Telnet column sends, receives, reconnects and reports gateway failures', async () => {
@@ -175,14 +200,14 @@ test('Telnet column sends, receives, reconnects and reports gateway failures', a
   }
   globalThis.WebSocket = MockWebSocket
   const errors = []
-  const column = useColumn(0, globalSettings(), (message) => errors.push(message))
+  const column = useColumn(0, globalSettings(), (message) => errors.push(message), () => 'test-token')
   try {
     column.settings.transport = 'telnet'
     column.settings.telnetHost = 'host.example'
     column.settings.telnetPort = 2323
     const connecting = column.connect()
     await settle()
-    assert.deepEqual(JSON.parse(sockets[0].sent[0]), { host: 'host.example', port: 2323 })
+    assert.deepEqual(JSON.parse(sockets[0].sent[0]), { type: 'connect', token: 'test-token', host: 'host.example', port: 2323 })
     sockets[0].receive('{"type":"ready"}')
     await connecting
     assert.equal(column.connected.value, true)

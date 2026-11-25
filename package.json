@@ -12,8 +12,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "test:serial": "node --experimental-strip-types --test src/serial/__tests__/*.test.mjs",
-    "telnet-gateway": "node scripts/telnet-gateway.mjs"
+    "test:serial": "node --experimental-strip-types --test src/serial/__tests__/*.test.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.0",
@@ -31,8 +30,7 @@
     "marked": "^16.4.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.22",
-    "vue-router": "^4.5.1",
-    "ws": "^8.18.3"
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",

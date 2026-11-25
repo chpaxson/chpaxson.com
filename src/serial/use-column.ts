@@ -25,7 +25,8 @@ export function serialApi() {
   return (navigator as Navigator & { serial?: SerialApi }).serial
 }
 
-export function useColumn(index: number, global: GlobalSettings, report: (message: string) => void) {
+export function useColumn(index: number, global: GlobalSettings, report: (message: string) => void,
+  gatewayToken: () => string | null = () => null) {
   const preferenceScope = effectScope(true)
   const settings = preferenceScope.run(() =>
     savedSettings(`wsc_col_${index}`, defaultColumnSettings(index), validateColumn, report))!
@@ -197,13 +198,15 @@ export function useColumn(index: number, global: GlobalSettings, report: (messag
     } finally { busy.value = false }
   }
   function openTelnet(host: string, portNumber: number) {
+    const token = gatewayToken()
+    if (!token) throw new Error('Unlock the Telnet gateway in Options first')
     return new Promise<void>((resolve, reject) => {
       const ws = new WebSocket('ws://127.0.0.1:8765')
       ws.binaryType = 'arraybuffer'
       socket = ws
       const decoder = new ReceivedText()
       let ready = false
-      ws.onopen = () => ws.send(JSON.stringify({ host, port: portNumber }))
+      ws.onopen = () => ws.send(JSON.stringify({ type: 'connect', token, host, port: portNumber }))
       ws.onmessage = (event: MessageEvent<unknown>) => {
         if (!ready && typeof event.data === 'string') {
           try {
@@ -233,10 +236,10 @@ export function useColumn(index: number, global: GlobalSettings, report: (messag
         else report(`${settings.label}: Telnet gateway connection failed`)
       }
       ws.onclose = (event) => {
+        if (!ready) reject(new Error(event.reason || 'Local Telnet gateway connection closed'))
         if (socket !== ws) return
         socket = null
-        if (!ready) reject(new Error(event.reason || 'Local Telnet gateway connection closed'))
-        else {
+        if (ready) {
           const tail = decoder.push(new Uint8Array(), true)
           if (tail.bytes.length) append('in', tail.text, tail.bytes)
           if (event.reason && event.code !== 1000) report(`${settings.label}: ${event.reason}`)

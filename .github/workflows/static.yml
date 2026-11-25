@@ -11,7 +11,32 @@ permissions:
   id-token: write
 
 jobs:
+  build-gateway:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install gateway build dependencies
+        run: python -m pip install -r gateway/requirements.txt
+      - name: Test gateway
+        run: python -m unittest discover -s gateway -p test_gateway.py -v
+      - name: Build Windows gateway
+        run: |
+          New-Item -ItemType Directory -Force gateway\.build | Out-Null
+          python -m PyInstaller --onefile --name telnet-gateway --distpath gateway-dist --workpath "$env:RUNNER_TEMP\gateway-build" --specpath gateway\.build gateway\gateway.py
+      - name: Upload Windows gateway
+        uses: actions/upload-artifact@v4
+        with:
+          name: telnet-gateway-windows
+          path: gateway-dist/telnet-gateway.exe
+          if-no-files-found: error
+
   deploy:
+    needs: build-gateway
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -29,6 +54,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Download Windows gateway
+        uses: actions/download-artifact@v4
+        with:
+          name: telnet-gateway-windows
+          path: public/downloads
 
       - name: Build website
         run: npm run build
