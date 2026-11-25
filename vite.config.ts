@@ -4,13 +4,11 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import typstBlocks from './src/plugins/vite-plugin-typst-blocks'
-import bradySdkAssets from './src/plugins/vite-plugin-brady-sdk'
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     typstBlocks(),
-    bradySdkAssets(),
     vue(),
     vueDevTools(),
   ],

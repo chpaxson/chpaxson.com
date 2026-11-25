@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
-
 const tools = [
   {
     title: 'Brady M211 Label Studio',
-    href: '/bradym211',
+    href: 'https://chpaxson.com/brady-m211-studio/',
     symbol: 'M211',
     description: 'Create labels from images, PDFs, or Typst and print directly to a Brady M211 over Bluetooth.',
     requirement: 'Chrome or Edge · Web Bluetooth',
   },
   {
-    title: 'Serial Console',
-    href: '/serialconsole',
+    title: 'Multichannel Serial Console',
+    href: 'https://chpaxson.com/multichannel-serial-console/',
     symbol: '>_',
     description: 'Connect to serial devices in your browser with multiple ports, text and hex views, and downloadable logs.',
     requirement: 'Chrome or Edge · Web Serial',
@@ -25,14 +23,14 @@ const tools = [
       <h1>Tools</h1>
       <p class="intro">Browser-based utilities for working with hardware. No installation required.</p>
       <div class="tools-grid">
-        <RouterLink v-for="tool in tools" :key="tool.href" :to="tool.href" class="tool-card">
+        <a v-for="tool in tools" :key="tool.href" :href="tool.href" class="tool-card">
           <div class="tool-symbol" aria-hidden="true">{{ tool.symbol }}</div>
           <div class="tool-content">
             <h2>{{ tool.title }} <span aria-hidden="true">&rarr;</span></h2>
             <p>{{ tool.description }}</p>
             <span class="requirement">{{ tool.requirement }}</span>
           </div>
-        </RouterLink>
+        </a>
       </div>
       <p class="note">Device connections require HTTPS or localhost and your permission.</p>
     </div>
